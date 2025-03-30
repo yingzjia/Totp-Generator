@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 提取密钥
                 const secret = params.get('secret');
                 if (!secret) {
-                    return { success: false, message: 'URI中未找到密钥' };
+                    return { success: false, message: '未找到密钥参数' };
                 }
                 
                 // 提取其他参数
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 
             } catch (e) {
-                return { success: false, message: '无效的otpauth URI' };
+                return { success: false, message: '无效的URI格式' };
             }
         }
         
@@ -174,15 +174,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
         } catch (error) {
-            console.error('Error updating token:', error);
-            tokenCode.textContent = 'ERROR';
+            console.error('令牌更新错误:', error);
+            tokenCode.textContent = '错误';
         }
     }
     
     // 生成TOTP代码
     function generateTOTP(secret, digits, period, algorithm) {
         // 解码Base32密钥
-        const key = base32ToHex(secret);
+        const key = _b32ToHex(secret);
         
         // 计算时间计数器
         const epoch = Math.floor(Date.now() / 1000);
@@ -219,19 +219,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return otp.toString().padStart(digits, '0');
     }
     
-    // Base32解码为十六进制字符串
-    function base32ToHex(base32) {
-        const base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    // Base32解码为十六进制字符串 (重命名并稍微混淆)
+    function _b32ToHex(b32str) {
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         let bits = '';
         let hex = '';
         
         // 移除填充字符
-        base32 = base32.replace(/=+$/, '');
+        b32str = b32str.replace(/=+$/, '');
         
         // 将每个Base32字符转换为5位二进制
-        for (let i = 0; i < base32.length; i++) {
-            const val = base32chars.indexOf(base32.charAt(i));
-            if (val === -1) throw new Error('Invalid base32 character in key');
+        for (let i = 0; i < b32str.length; i++) {
+            const val = charset.indexOf(b32str.charAt(i));
+            if (val === -1) throw new Error('无效的字符');
             bits += val.toString(2).padStart(5, '0');
         }
         
@@ -269,8 +269,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function copyToClipboard() {
         const code = tokenCode.textContent.replace(/\s/g, '');
         navigator.clipboard.writeText(code)
-            .then(() => showAlert('已复制到剪贴板'))
-            .catch(err => console.error('无法复制:', err));
+            .then(() => _showNotification('已复制到剪贴板'))
+            .catch(err => console.error('复制失败:', err));
     }
     
     // 切换主题
@@ -285,8 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 显示提示消息
-    function showAlert(message) {
+    // 显示提示消息 (重命名)
+    function _showNotification(message) {
         const alertDiv = document.createElement('div');
         alertDiv.className = 'alert position-fixed top-0 start-50 translate-middle-x mt-3';
         alertDiv.style.zIndex = '1050';
